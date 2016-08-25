@@ -24,16 +24,16 @@
 #                          SET THE FOLLOWING VARIABLES                        #
 ###############################################################################
 # VPNUSERNAME - This is the USERNAME your router has been provided
-:local VPNUSERNAME "vpn_uasername@thevpn.co.uk"
+:local VPNUSERNAME "vpn_username@thevpn.co.uk"
 # VPNPASSWORD - This is the PASSWORD your router has been provided
-:local VPNPASSWORD "vpn_apassword"
+:local VPNPASSWORD "vpn_password"
 # VPNAPIKEY - This is the Router's API Key for the Web interface
-:local VPNAPIKEY "aaaaaaaaaa"
+:local VPNAPIKEY "aaaaaaaaa"
 # ASN - This is your Routers ASN that it was provided
-:local ASN "1234789"
+:local ASN "123456789"
 # ROUTERID - We need to keep the Router IDs unique, this is your routers 
 # interconnect IP address.
-:local ROUTERID "1.2.3.2"
+:local ROUTERID "1.2.3.4"
 # CALLHOMESTATS - We collect some stats about routes and the likes, if you do
 # not want this data to be collected, set this to 0. See the last section of
 # this script to see the stats we collect
@@ -70,18 +70,23 @@
 
 # Default config check
 if ($VPNUSERNAME = "vpn_username@thevpn.co.uk") do={
+    :log error "VPN Username has not been changed in script"
     :error "VPN Username has not been changed in script"
 }
 if ($VPNPASSWORD = "vpn_password") do={
+    :log error "VPN Password has not been changed in script"
     :error "VPN Password has not been changed in script"
 }
 if ($VPNAPIKEY = "aaaaaaaaa") do={
+    :log error "VPN APIKey has not been changed in script"
     :error "VPN APIKey has not been changed in script"
 }
 if ($ASN = "123456789") do={
+    :log error "ASN Has not been changed in script"
     :error "ASN has not been changed in script"
 }
 if ($ROUTERID = "1.2.3.4") do={
+    :log error "routerid has not been changed in script"
     :error "Router has not been changed in script"
 }
 # End default config check
@@ -156,7 +161,7 @@ if ([/ip ipsec proposal find name=$PREFIX] = "") do={
 :local peers [:toarray [/file get [/file find name="$PREFIX/peers"] contents]]
 :foreach peer in=$peers do={
     :if ([:len $peer] > 5) do={
-        $c "We are expecting the following format name|dns|proto|port|bgpip|bgpas"
+        $c "We are expecting the following format name|dns|proto|port|bgpip|bgpas|locip|remip"
         $c "Split array based on this"
 
         :local START 0
@@ -172,7 +177,11 @@ if ([/ip ipsec proposal find name=$PREFIX] = "") do={
         :local BGPIP [:pick $peer ($END4+1) $END5]
         :local END6 [:find $peer "|" ($END5+1)]
         :local BGPAS [:pick $peer ($END5+1) $END6]
-        :set ($allpeers->$NAME) {name=$NAME; dns=$DNS; proto=$PROTO; port=$PORT; bgpip=$BGPIP; bgpas=$BGPAS}
+        :local END7 [:find $peer "|" ($END6+1)]
+        :local LOCIP [:pick $peer ($END6+1) $END7]
+        :local END8 [:find $peer "|" ($END7+1)]
+        :local REMIP [:pick $peer ($END8+1) ]
+        :set ($allpeers->$NAME) {name=$NAME; dns=$DNS; proto=$PROTO; port=$PORT; bgpip=$BGPIP; bgpas=$BGPAS, locip=$LOCIP, remip=$REMIP}
     }
 } 
 
