@@ -4,7 +4,7 @@
 #                        | | | '_ \ / _ \ \ / /| |_) |  \| |                  #
 #                        | | | | | |  __/\ V / |  __/| |\  |                  #
 #                        |_| |_| |_|\___| \_/  |_|   |_| \_|                  #
-#                                                                             #
+# See https://github.com/welbymcroberts/thevpn.co.uk for more infromation     #
 ###############################################################################
 # This is the "AutoPeering" script, which connects to the central peering dir #
 # ectory and creates peers based of the response that is returned.This script #
@@ -204,7 +204,9 @@ if ([/ip ipsec proposal find name=$PREFIX] = "") do={
                 :log warn ("Creating New IPSEC Policy for ". ($peer->"name"))
                 /ip ipsec policy add comment=($PREFIX."-".($peer->"name")) sa-src-address=$BINDIP src-address=$BINDIP dst-address=[:resolve ($peer->"dns")] sa-dst-address=[:resolve ($peer->"dns")] protocol=gre proposal=$PREFIX 
             }
-            $c TODO: IPAddresses
+            :if ([/ip address find address=($peer->"locip")] = "") do={
+                /ip address add address=($peer->"locip") interface=[/interface gre find name=($PREFIX."_".($peer->"proto")."-".($peer->"name")."-".($peer->"dns")) ]
+            } 
         } else={
             /log debug ("Already have interface for " . "Peer:" . ($peer->"name") . ":" . ($peer->"proto"))
             $c TODO: Check that DNS is correct
@@ -254,6 +256,7 @@ if ([/ip ipsec proposal find name=$PREFIX] = "") do={
         :log warn ("Interface " . $INAME ." is no longer required - removing connection to " . $NAME . "(" . $DNS . ") via " . $PROTO)
         /interface list member remove [/interface list member find interface=$INAME]
         $C TODO: Remove old IP addresses
+        /ip address remove [/ip address find interface=$i]
         :if ($PROTO = "GREIPSEC") do={
             /interface gre remove $i
             /ip ipsec peer remove [/ip ipsec peer find comment=($PREFIX."-".$NAME)]
