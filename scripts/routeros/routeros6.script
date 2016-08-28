@@ -209,6 +209,14 @@ if ([/ip ipsec proposal find name=$PREFIX] = "") do={
             } 
         } else={
             /log debug ("Already have interface for " . "Peer:" . ($peer->"name") . ":" . ($peer->"proto"))
+            :local IP [/interface gre get [ /interface gre find name=($PREFIX."_".($peer->"proto")."-".($peer->"name")."-".($peer->"dns")) ] remote-address]
+            :local RESOLVED [:resolve ($peer->"dns")]
+            :if ($IP = $RESOLVED ) do={
+                :log debug "IP has not changed"
+            } else={
+                /interface gre set [ /interface gre find name=($PREFIX."_".($peer->"proto")."-".($peer->"name")."-".($peer->"dns")) ] remote-address=$RESOLVED
+                $c TODO: IPSec peer
+            }
             $c TODO: Check that DNS is correct
             $c TODO: IPSec
         }
@@ -255,7 +263,6 @@ if ([/ip ipsec proposal find name=$PREFIX] = "") do={
     } else={
         :log warn ("Interface " . $INAME ." is no longer required - removing connection to " . $NAME . "(" . $DNS . ") via " . $PROTO)
         /interface list member remove [/interface list member find interface=$INAME]
-        $C TODO: Remove old IP addresses
         /ip address remove [/ip address find interface=$i]
         :if ($PROTO = "GREIPSEC") do={
             /interface gre remove $i

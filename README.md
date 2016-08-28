@@ -10,4 +10,10 @@ Currently the following devices / operating systems have been tested and confirm
 
 * Mikrotik RouterOS 6.36
 
+Commercial Use
+==============
+This project uses the "MIT License", so this is free for use by anyone, however it is asked that if you are using this in a comercial setting that a donation is made to one of the following charities:
 
+* Medecins Sans Frontieres (Doctors Without Borders) http://www.doctorswithoutborders.org/
+* Guide Dogs for the Blind or your local equivelent
+* Your local Humane Society or Animal Protection agency (SPCA)
