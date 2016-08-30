@@ -1,0 +1,331 @@
+###############################################################################
+#                       _____ _        __     ______  _   _                   #
+#                      |_   _| |__   __\ \   / /  _ \| \ | |                  #
+#                        | | | '_ \ / _ \ \ / /| |_) |  \| |                  #
+#                        | | | | | |  __/\ V / |  __/| |\  |                  #
+#                        |_| |_| |_|\___| \_/  |_|   |_| \_|                  #
+# See https://github.com/welbymcroberts/thevpn.co.uk for more infromation     #
+###############################################################################
+# This is the "AutoPeering" script, which connects to the central peering dir #
+# ectory and creates peers based of the response that is returned.This script #
+# should be run every 60 seconds and should take no more than 10 seconds to c #
+# omplete running. There is however no locking in place, and relies on Router #
+# OS to handle this.                                                          #
+###############################################################################
+:local VERSION 1
+# Date: 2016/08/25                                                            #
+# Author: Welby McRoberts <welby+ros@thevpn.co.uk>                            #
+###############################################################################
+
+
+
+
+###############################################################################
+#                          SET THE FOLLOWING VARIABLES                        #
+###############################################################################
+# VPNUSERNAME - This is the USERNAME your router has been provided
+:local VPNUSERNAME "vpn_username@thevpn.co.uk"
+# VPNPASSWORD - This is the PASSWORD your router has been provided
+:local VPNPASSWORD "vpn_password"
+# VPNAPIKEY - This is the Router's API Key for the Web interface
+:local VPNAPIKEY "aaaaaaaaa"
+# ASN - This is your Routers ASN that it was provided
+:local ASN "123456789"
+# ROUTERID - We need to keep the Router IDs unique, this is your routers 
+# interconnect IP address.
+:local ROUTERID "1.2.3.4"
+# CALLHOMESTATS - We collect some stats about routes and the likes, if you do
+# not want this data to be collected, set this to 0. See the last section of
+# this script to see the stats we collect
+:local CALLHOMESTATS 1
+# BINDIP - Which IP to use for Binding to. Only useful for those with multiple
+# external IP addresses. If you do not have a need to use this, leave it as
+# "0"
+:local BINDIP 0
+# INSECURE - Allow insecure VPN protocols - PPTP for example, 0 disables
+:local INSECURE 0
+# PREFIX - this is the prefix that we use for anything to do with this script
+:local PREFIX "TheVPN"
+###############################################################################
+#        DON'T EDIT BELOW THIS LINE UNLESS YOU KNOW WHAT YOUR DOING           #
+###############################################################################
+
+
+###############################################################################
+# Other variables
+###############################################################################
+:local BASEURL "http://thevpn.co.uk/"
+
+
+###############################################################################
+# Common functions
+###############################################################################
+# Comment function, as # comments must be first char on line
+:local c do={}
+
+
+###############################################################################
+# Step 0: Setup any system wide config - This is non Dynamic configuration    #
+###############################################################################
+
+# Default config check
+if ($VPNUSERNAME = "vpn_username@thevpn.co.uk") do={
+    :log error "VPN Username has not been changed in script"
+    :error "VPN Username has not been changed in script"
+}
+if ($VPNPASSWORD = "vpn_password") do={
+    :log error "VPN Password has not been changed in script"
+    :error "VPN Password has not been changed in script"
+}
+if ($VPNAPIKEY = "aaaaaaaaa") do={
+    :log error "VPN APIKey has not been changed in script"
+    :error "VPN APIKey has not been changed in script"
+}
+if ($ASN = "123456789") do={
+    :log error "ASN Has not been changed in script"
+    :error "ASN has not been changed in script"
+}
+if ($ROUTERID = "1.2.3.4") do={
+    :log error "routerid has not been changed in script"
+    :error "Router has not been changed in script"
+}
+# End default config check
+
+# BGP Config
+## Do we have a TheVPN instance?
+if ([:len [/routing bgp instance find where name="TheVPN"]] >0) do={
+    $c "We don't need to do anything"
+} else={
+    $c "We need to create a new VPN Instance"
+    $l level=warn message="No BGP instance found for TheVPN - Creating"
+    /routing bgp instance add as=$ASN comment="TheVPN BGP Instance" \
+    name="TheVPN" router-id=$ROUTERID redistribute-other-bgp=yes
+}
+
+# Check for TheVPN routefilters
+# Log rule
+if ([:len [/routing filter find comment=($PREFIX."-IN:0")]] <1) do={
+    /routing filter add chain=($PREFIX."-IN") prefix-length=12-32 action=log prefix=172.16.0.0/12 comment=($PREFIX."-IN:0")
+}
+# Log rule
+if ([:len [/routing filter find comment=($PREFIX."-IN:1")]] <1) do={
+    /routing filter add chain=($PREFIX."-IN") prefix-length=12-32 action=accept prefix=172.16.0.0/12 comment=($PREFIX."-IN:1")
+}
+
+# End BGP config
+
+# Radius config
+## DE
+if ([:len [/radius find where comment="TheVPN Radius DE"]] >0) do={
+    $c "We don't need to do anything"
+} else={
+    $l level=warn message="No Radius client instance found for TheVPN DE - Creating"
+    /radius add address=[:resolve "thevpn.co.uk"] comment="TheVPN Radius DE" realm="thevpn" timeout=2s called-id=$ROUTERID secret=$APIKEY authentication-port=65500 accounting-port=65501 service=ppp
+}
+## FR
+if ([:len [/radius find where comment="TheVPN Radius FR"]] >0) do={
+    $c "We don't need to do anything"
+} else={
+    $l level=warn message="No Radius client instance found for TheVPN FR - Creating"
+    /radius add address=[:resolve "thevpn.co.uk"] comment="TheVPN Radius FR" realm="thevpn" timeout=2s called-id=$ROUTERID secret=$APIKEY authentication-port=65500 accounting-port=65501 service=ppp
+}
+
+# PPP
+# PPP to use Radius
+if ( ! [/ppp aaa get use-radius]) do={
+    $l level=warn message="Radius not enabled for PPP AAA - Enabling"
+    /ppp aaa set use-radius=yes
+}
+# PPP to enable accounting
+if ([/ppp aaa get interim-update] < 60) do={
+    $l level=warn message="RADIUS Accounting not at right frequency - setting to 60s"
+    /ppp aaa set interim-update=60
+}
+
+# Create IPSec proposal
+if ([/ip ipsec proposal find name=$PREFIX] = "") do={
+    /ip ipsec proposal add auth-algorithms=sha256 enc-algorithms=aes-256-cbc name=TheVPN pfs-group=modp2048
+}
+
+# Setup a Peers array
+:local allpeers [:toarray ""]
+
+# Bind IP
+:if ($BINDIP = "0") do={
+    $c "Get IP from server"
+    /tool fetch url="http://icanhazip.com/" dst-path="$PREFIX/ip"
+    :local IP [/file get [/file find name="$PREFIX/ip"] contents]
+    :set BINDIP [:pick $IP 0 ([:len $IP]-1)]
+}
+
+# Interface list
+:if ([:len [/interface list find name=$PREFIX]] < 1 ) do={
+    /interface list add name="$PREFIX"
+}
+###############################################################################
+# Step 1: Get a list of peers from central                                    #
+###############################################################################
+# Fetch data
+/tool fetch url="$BASEURL/peers" dst-path="$PREFIX/peers"
+# Load in array
+:local peers [:toarray [/file get [/file find name="$PREFIX/peers"] contents]]
+:foreach peer in=$peers do={
+    :if ([:len $peer] > 5) do={
+        $c "We are expecting the following format name|dns|proto|port|bgpip|bgpas|locip|remip"
+        $c "Split array based on this"
+
+        :local START 0
+        :local END1 [:find $peer "|"]
+        :local NAME [:pick $peer $START $END1]
+        :local END2 [:find $peer "|" ($END1+1)]
+        :local DNS [:pick $peer ($END1+1) $END2]
+        :local END3 [:find $peer "|" ($END2+1)]
+        :local PROTO [:pick $peer ($END2+1) $END3]
+        :local END4 [:find $peer "|" ($END3+1)]
+        :local PORT [:pick $peer ($END3+1) $END4]
+        :local END5 [:find $peer "|" ($END4+1)]
+        :local BGPIP [:pick $peer ($END4+1) $END5]
+        :local END6 [:find $peer "|" ($END5+1)]
+        :local BGPAS [:pick $peer ($END5+1) $END6]
+        :local END7 [:find $peer "|" ($END6+1)]
+        :local LOCIP [:pick $peer ($END6+1) $END7]
+        :local END8 [:find $peer "|" ($END7+1)]
+        :local REMIP [:pick $peer ($END8+1) ]
+        :set ($allpeers->$NAME) {name=$NAME; dns=$DNS; proto=$PROTO; port=$PORT; bgpip=$BGPIP; bgpas=$BGPAS, locip=$LOCIP, remip=$REMIP}
+    }
+} 
+
+###############################################################################
+# Step 2: Create a tunnel to the peer if it does not currently exist          #
+###############################################################################
+:foreach peer in=$allpeers do={
+    :log debug ("Peer:" . ($peer->"name") . ":" . ($peer->"proto"))
+    :if (($peer->"proto") = "GREIPSEC") do={
+        $c "Check if Tunnel exists first name should be PREFIX_NAME"
+        :if ( [ /interface gre find name=($PREFIX."_".($peer->"proto")."-".($peer->"name")."-".($peer->"dns")) ] = "") do={
+            :log warn ("Creating interface for " . "Peer:" . ($peer->"name") . ":" . ($peer->"proto"))
+            /interface gre add disabled=no comment=("$PREFIX GRE Tunnel to " . ($peer->"name") ." on hostname:" . ($peer->"dns")) clamp-tcp-mss=yes dont-fragment=no \
+                name=($PREFIX."_".($peer->"proto")."-".($peer->"name")."-".($peer->"dns")) dscp=8 mtu=1400 local-address=$BINDIP remote-address=[:resolve ($peer->"dns") ]
+            :if ( [ /ip ipsec peer find address=[:resolve ($peer->"dns")]] = "") do={
+                :log warn ("Creating New IPSEC Peer for ". ($peer->"name"))
+                /ip ipsec peer add comment=($PREFIX."-".($peer->"name")) address=[:resolve ($peer->"dns")] auth-method=rsa-signature certificate=$PREFIX dh-group=modp2048 nat-traversal=no remote-certificate=none disabled=no enc-algorithm=aes-256 hash-algorithm=sha256 
+            }
+            :if ( [ /ip ipsec policy find dst-address=[:resolve ($peer->"dns")]] = "") do={
+                :log warn ("Creating New IPSEC Policy for ". ($peer->"name"))
+                /ip ipsec policy add comment=($PREFIX."-".($peer->"name")) sa-src-address=$BINDIP src-address=$BINDIP dst-address=[:resolve ($peer->"dns")] sa-dst-address=[:resolve ($peer->"dns")] protocol=gre proposal=$PREFIX 
+            }
+            :if ([/ip address find address=($peer->"locip")] = "") do={
+                /ip address add address=($peer->"locip") interface=[/interface gre find name=($PREFIX."_".($peer->"proto")."-".($peer->"name")."-".($peer->"dns")) ]
+            } 
+        } else={
+            /log debug ("Already have interface for " . "Peer:" . ($peer->"name") . ":" . ($peer->"proto"))
+            :local IP [/interface gre get [ /interface gre find name=($PREFIX."_".($peer->"proto")."-".($peer->"name")."-".($peer->"dns")) ] remote-address]
+            :local RESOLVED [:resolve ($peer->"dns")]
+            :if ($IP = $RESOLVED ) do={
+                :log debug "IP has not changed"
+            } else={
+                /interface gre set [ /interface gre find name=($PREFIX."_".($peer->"proto")."-".($peer->"name")."-".($peer->"dns")) ] remote-address=$RESOLVED
+                /ip ipsec peer set [ /ip ipsec peer find comment=($PREFIX."-".($peer->"name"))] address=$RESOLVED
+                /ip ipsec peer set [ /ip ipsec peer find comment=($PREFIX."-".($peer->"name"))] address=$RESOLVED
+            }
+        }
+    } else={
+        :if (($peer->"proto") = "L2TPIPSEC") do={
+            $c "TODO: Implement L2TP+IPSEC"
+        } else={
+            :if (($peer->"proto") = "SSTP") do={
+                $c "TODO: Implement L2TP+IPSEC"
+            } else={
+                :if (($peer->"proto") = "OVPN") do={
+                    $c "TODO: Implement OVPN"
+                } else={
+                    :if ($INSECURE != 0) do={
+                        $c "TODO: PPTP"
+                        $c "TODO: GRE Non IPSEC"
+                    } else={
+                        :log error ("Unknown Protocol - Peer:" . ($peer->"name") . ":" . ($peer->"proto"))
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+###############################################################################
+# Step 3: Clear away old tunnels                                              #
+###############################################################################
+# Iterate over all tunnels with $PREFIX
+:foreach i in=[/interface find name ~"^$PREFIX"] do={
+    :local INAME [/interface get $i name]
+    :local START 0
+    :local END1 [:find $INAME "_"]
+    :local PREFIX [:pick $INAME $START $END1]
+    :local END2 [:find $INAME "-" ($END1+1)]
+    :local PROTO [:pick $INAME ($END1+1) $END2]
+    :local END3 [:find $INAME "-" ($END2+1)]
+    :local NAME [:pick $INAME ($END2+1) $END3] 
+    :local END4 [:find $INAME "-" ($END3+1)]
+    :local DNS [:pick $INAME ($END3+1) $END4]
+    :if ([:len ($allpeers->"$NAME"->"name")] >1) do={
+        :log debug "Found a peer for $NAME, not doing anything"
+    } else={
+        :log warn ("Interface " . $INAME ." is no longer required - removing connection to " . $NAME . "(" . $DNS . ") via " . $PROTO)
+        /interface list member remove [/interface list member find interface=$INAME]
+        /ip address remove [/ip address find interface=$i]
+        :if ($PROTO = "GREIPSEC") do={
+            /interface gre remove $i
+            /ip ipsec peer remove [/ip ipsec peer find comment=($PREFIX."-".$NAME)]
+            /ip ipsec policy remove [/ip ipsec policy find comment=($PREFIX."-".$NAME)]
+        } else={
+            $c TODO: Other protocols
+        }
+        
+    }
+}
+
+###############################################################################
+# Step 4: Check tunnels are in Interface lists                                #
+###############################################################################
+:foreach i in=[/interface find name ~"^$PREFIX"] do={
+    :if ( [/interface list member find interface=[/interface get $i name] list=$PREFIX] = "") do={
+        /interface list member add list=$PREFIX interface=$i
+    }
+}
+
+###############################################################################
+# Step 5: Check the Firewall Filters                                          #
+###############################################################################
+# TODO: Central managed FW rules?
+
+###############################################################################
+# Step 6: Check the BGP Filters                                               #
+###############################################################################
+# TODO: Should we build source AS rules ?
+
+###############################################################################
+# Step 7: Create a BGP peering to the peer if it does not currently exist     #
+###############################################################################
+:foreach peer in=$allpeers do={
+    :if ( [ /routing bgp peer find remote-address=($peer->"bgpip")] = "") do={
+        :log warn ("BGP Peer not found for " . ($peer->"name") . " Adding")
+        /routing bgp peer add address-families=ip in-filter=($PREFIX."-IN") out-filter=($PREFIX."-OUT") remote-address=($peer->"bgpip") remote-as=($peer->"bgpas") keepalive-time=10s name=($PREFIX."-".($peer->"name")) instance=$PREFIX
+    } else={
+        :log debug ("BGP Peer found for ".($peer->"name")." doing nothing")
+    }
+}
+
+###############################################################################
+# Step 8: Clear away old peerings                                             #
+###############################################################################
+:foreach P in=[/routing bgp peer find name ~"^$PREFIX"] do={
+    $c Split the name out
+    :local START [:find [/routing bgp peer get $P name] "-"]
+    :local NAME [:pick [/routing bgp peer get $P name] ($START+1) -1]
+    :if ( [:len ($allpeers->"$NAME"->"name")] >1) do={
+        :log debug ("Peer ".$NAME." is still required")
+    } else={
+        :log warning ("Removing old peer ".$NAME)
+        /routing bgp peer remove $P
+    }
+}
