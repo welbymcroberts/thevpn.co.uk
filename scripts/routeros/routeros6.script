@@ -102,6 +102,16 @@ if ([:len [/routing bgp instance find where name="TheVPN"]] >0) do={
     name="TheVPN" router-id=$ROUTERID redistribute-other-bgp=yes
 }
 
+# Check for TheVPN routefilters
+# Log rule
+if ([:len [/routing filter find comment=($PREFIX."-IN:0")]] <1) do={
+    /routing filter add chain=($PREFIX."-IN") prefix-length=12-32 action=log prefix=172.16.0.0/12 comment=($PREFIX."-IN:0")
+}
+# Log rule
+if ([:len [/routing filter find comment=($PREFIX."-IN:1")]] <1) do={
+    /routing filter add chain=($PREFIX."-IN") prefix-length=12-32 action=accept prefix=172.16.0.0/12 comment=($PREFIX."-IN:1")
+}
+
 # End BGP config
 
 # Radius config
@@ -215,10 +225,9 @@ if ([/ip ipsec proposal find name=$PREFIX] = "") do={
                 :log debug "IP has not changed"
             } else={
                 /interface gre set [ /interface gre find name=($PREFIX."_".($peer->"proto")."-".($peer->"name")."-".($peer->"dns")) ] remote-address=$RESOLVED
-                $c TODO: IPSec peer
+                /ip ipsec peer set [ /ip ipsec peer find comment=($PREFIX."-".($peer->"name"))] address=$RESOLVED
+                /ip ipsec peer set [ /ip ipsec peer find comment=($PREFIX."-".($peer->"name"))] address=$RESOLVED
             }
-            $c TODO: Check that DNS is correct
-            $c TODO: IPSec
         }
     } else={
         :if (($peer->"proto") = "L2TPIPSEC") do={
@@ -232,7 +241,7 @@ if ([/ip ipsec proposal find name=$PREFIX] = "") do={
                 } else={
                     :if ($INSECURE != 0) do={
                         $c "TODO: PPTP"
-                        $c "TODO: GRE Non IPSEC?"
+                        $c "TODO: GRE Non IPSEC"
                     } else={
                         :log error ("Unknown Protocol - Peer:" . ($peer->"name") . ":" . ($peer->"proto"))
                     }
@@ -287,7 +296,7 @@ if ([/ip ipsec proposal find name=$PREFIX] = "") do={
 ###############################################################################
 # Step 5: Check the Firewall Filters                                          #
 ###############################################################################
-# TODO: Central managed FW rules
+# TODO: Central managed FW rules?
 
 ###############################################################################
 # Step 6: Check the BGP Filters                                               #
