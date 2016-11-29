@@ -55,3 +55,4 @@ docs/_build/
 # pycharm
 .idea/
 web/db.sqlite3
+web/web/localsettings.py
