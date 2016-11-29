@@ -4,7 +4,7 @@
 #                        | | | '_ \ / _ \ \ / /| |_) |  \| |                  #
 #                        | | | | | |  __/\ V / |  __/| |\  |                  #
 #                        |_| |_| |_|\___| \_/  |_|   |_| \_|                  #
-# See https://github.com/welbymcroberts/thevpn.co.uk for more infromation     #
+# See https://github.com/welbymcroberts/thevpn.co.uk for more information     #
 ###############################################################################
 # This is the "AutoPeering" script, which connects to the central peering dir #
 # ectory and creates peers based of the response that is returned.This script #
@@ -13,7 +13,7 @@
 # OS to handle this.                                                          #
 ###############################################################################
 :local VERSION 1
-# Date: 2016/08/25                                                            #
+# Date: 2016/11/11                                                            #
 # Author: Welby McRoberts <welby+ros@thevpn.co.uk>                            #
 ###############################################################################
 
@@ -31,7 +31,7 @@
 :local VPNAPIKEY "aaaaaaaaa"
 # ASN - This is your Routers ASN that it was provided
 :local ASN "123456789"
-# ROUTERID - We need to keep the Router IDs unique, this is your routers 
+# ROUTERID - We need to keep the Router IDs unique, this is your routers
 # interconnect IP address.
 :local ROUTERID "1.2.3.4"
 # CALLHOMESTATS - We collect some stats about routes and the likes, if you do
@@ -190,10 +190,10 @@ if ([/ip ipsec proposal find name=$PREFIX] = "") do={
         :local END7 [:find $peer "|" ($END6+1)]
         :local LOCIP [:pick $peer ($END6+1) $END7]
         :local END8 [:find $peer "|" ($END7+1)]
-        :local REMIP [:pick $peer ($END8+1) ]
-        :set ($allpeers->$NAME) {name=$NAME; dns=$DNS; proto=$PROTO; port=$PORT; bgpip=$BGPIP; bgpas=$BGPAS, locip=$LOCIP, remip=$REMIP}
+        :local REMIP [:pick $peer ($END7+1) $END8]
+        :set ($allpeers->$NAME) {name=$NAME; dns=$DNS; proto=$PROTO; port=$PORT; bgpip=$BGPIP; bgpas=$BGPAS; locip=$LOCIP; remip=$REMIP}
     }
-} 
+}
 
 ###############################################################################
 # Step 2: Create a tunnel to the peer if it does not currently exist          #
@@ -208,15 +208,16 @@ if ([/ip ipsec proposal find name=$PREFIX] = "") do={
                 name=($PREFIX."_".($peer->"proto")."-".($peer->"name")."-".($peer->"dns")) dscp=8 mtu=1400 local-address=$BINDIP remote-address=[:resolve ($peer->"dns") ]
             :if ( [ /ip ipsec peer find address=[:resolve ($peer->"dns")]] = "") do={
                 :log warn ("Creating New IPSEC Peer for ". ($peer->"name"))
-                /ip ipsec peer add comment=($PREFIX."-".($peer->"name")) address=[:resolve ($peer->"dns")] auth-method=rsa-signature certificate=$PREFIX dh-group=modp2048 nat-traversal=no remote-certificate=none disabled=no enc-algorithm=aes-256 hash-algorithm=sha256 
+                /ip ipsec peer add comment=($PREFIX."-".($peer->"name")) address=[:resolve ($peer->"dns")] auth-method=rsa-signature certificate=$PREFIX dh-group=modp2048 nat-traversal=no remote-certificate=none disabled=no enc-algorithm=aes-256 hash-algorithm=sha256
             }
             :if ( [ /ip ipsec policy find dst-address=[:resolve ($peer->"dns")]] = "") do={
                 :log warn ("Creating New IPSEC Policy for ". ($peer->"name"))
-                /ip ipsec policy add comment=($PREFIX."-".($peer->"name")) sa-src-address=$BINDIP src-address=$BINDIP dst-address=[:resolve ($peer->"dns")] sa-dst-address=[:resolve ($peer->"dns")] protocol=gre proposal=$PREFIX 
+                /ip ipsec policy add comment=($PREFIX."-".($peer->"name")) sa-src-address=$BINDIP src-address=$BINDIP dst-address=[:resolve ($peer->"dns")] sa-dst-address=[:resolve ($peer->"dns")] protocol=gre proposal=$PREFIX
             }
             :if ([/ip address find address=($peer->"locip")] = "") do={
                 /ip address add address=($peer->"locip") interface=[/interface gre find name=($PREFIX."_".($peer->"proto")."-".($peer->"name")."-".($peer->"dns")) ]
             } 
+            
         } else={
             /log debug ("Already have interface for " . "Peer:" . ($peer->"name") . ":" . ($peer->"proto"))
             :local IP [/interface gre get [ /interface gre find name=($PREFIX."_".($peer->"proto")."-".($peer->"name")."-".($peer->"dns")) ] remote-address]
@@ -264,7 +265,7 @@ if ([/ip ipsec proposal find name=$PREFIX] = "") do={
     :local END2 [:find $INAME "-" ($END1+1)]
     :local PROTO [:pick $INAME ($END1+1) $END2]
     :local END3 [:find $INAME "-" ($END2+1)]
-    :local NAME [:pick $INAME ($END2+1) $END3] 
+    :local NAME [:pick $INAME ($END2+1) $END3]
     :local END4 [:find $INAME "-" ($END3+1)]
     :local DNS [:pick $INAME ($END3+1) $END4]
     :if ([:len ($allpeers->"$NAME"->"name")] >1) do={
@@ -280,7 +281,7 @@ if ([/ip ipsec proposal find name=$PREFIX] = "") do={
         } else={
             $c TODO: Other protocols
         }
-        
+
     }
 }
 
@@ -296,7 +297,7 @@ if ([/ip ipsec proposal find name=$PREFIX] = "") do={
 ###############################################################################
 # Step 5: Check the Firewall Filters                                          #
 ###############################################################################
-# TODO: Central managed FW rules?
+# TODO: Central managed FW rules
 
 ###############################################################################
 # Step 6: Check the BGP Filters                                               #
@@ -321,7 +322,7 @@ if ([/ip ipsec proposal find name=$PREFIX] = "") do={
 :foreach P in=[/routing bgp peer find name ~"^$PREFIX"] do={
     $c Split the name out
     :local START [:find [/routing bgp peer get $P name] "-"]
-    :local NAME [:pick [/routing bgp peer get $P name] ($START+1) -1]
+    :local NAME [:pick [/routing bgp peer get $P name] ($START+1) [:len [/routing bgp peer get $P name]]]
     :if ( [:len ($allpeers->"$NAME"->"name")] >1) do={
         :log debug ("Peer ".$NAME." is still required")
     } else={
