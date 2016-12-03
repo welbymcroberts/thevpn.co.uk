@@ -2,7 +2,7 @@ from django.conf.urls import url, include
 from OpenSSL import crypto
 from django_ca.views import CertificateRevocationListView
 from django_ca.views import OCSPView
-from .views import ca_crl
+from .views import ca_crl, create_certificate
 
 urlpatterns = [
     url(r'^crl/(?P<serial>[0-9A-F:]+)/$',
@@ -43,5 +43,9 @@ urlpatterns = [
             responder_cert='/etc/ssl/oscp-routers.ca.thevpn.co.uk.pem',
             responder_key='/etc/ssl/oscp-routers.ca.thevpn.co.uk.key',
         )
+    ),
+    url(r'^certificate/create$',
+        create_certificate,
+        name="certificate_create"
     ),
 ]
