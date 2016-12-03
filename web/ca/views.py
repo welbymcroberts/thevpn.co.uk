@@ -2,8 +2,9 @@ from django.core.cache import cache
 from django.http import HttpResponse
 from django.utils.encoding import force_bytes
 from django import forms
+from django.http import Http404
 from django.shortcuts import render
-from django_ca.models import CertificateAuthority
+from django_ca.models import CertificateAuthority, Certificate
 from django_ca.crl import get_crl
 from .helpers import create_cert
 from OpenSSL import crypto
@@ -43,3 +44,20 @@ def create_certificate(request):
             key,cert = create_cert(cn, c, s, l, {})
             return render(request, 'ca/oneshot_certificate.html', {'key': key, 'cert': cert})
     return render(request, 'ca/create_certificate.html', {'form': form})
+
+
+def show_certificate(request, serial=None, cn=None):
+    if serial == None and cn == None:
+        raise Http404('No Certificate')
+    elif serial != None:
+        cert = Certificate.objects.get(serial=serial)
+    elif cn != None:
+        cert = Certificate.objects.get(cn=cn)
+    else:
+        return HttpResponse(status=500)
+    return render(request, 'ca/show_certificate.html', {'cert': cert})
+
+
+def show_ca(request, cn):
+    cert = CertificateAuthority.objects.get(cn=cn)
+    return render(request, 'ca/show_certificate.html', {'cert': cert})

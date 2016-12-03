@@ -2,7 +2,7 @@ from django.conf.urls import url, include
 from OpenSSL import crypto
 from django_ca.views import CertificateRevocationListView
 from django_ca.views import OCSPView
-from .views import ca_crl, create_certificate
+from .views import ca_crl, create_certificate, show_certificate, show_ca
 
 urlpatterns = [
     url(r'^crl/(?P<serial>[0-9A-F:]+)/$',
@@ -48,4 +48,26 @@ urlpatterns = [
         create_certificate,
         name="certificate_create"
     ),
+    url(r'^certificate/show/root.ca.thevpn.co.uk/?$',
+        show_ca,
+        {
+            "cn": "root.ca.thevpn.co.uk",
+        },
+        name="certificate_show_root"
+    ),
+    url(r'^certificate/show/routers.ca.thevpn.co.uk/?$',
+        show_ca,
+        {
+            "cn": "routers.ca.thevpn.co.uk",
+        },
+        name="certificate_show_root"
+    ),
+    url(r'^certificate/show/(?P<serial>([0-9A-Za-z]{2}:){15}[0-9A-Za-z]{2})/?$',
+        show_certificate,
+        name="certificate_show"
+    ),
+    url(r'^certificate/show/(?P<cn>((\w+).+)(\w+))/?$',
+        show_certificate,
+        name="certificate_show"
+    )
 ]
