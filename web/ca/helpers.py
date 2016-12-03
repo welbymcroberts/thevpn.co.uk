@@ -32,6 +32,7 @@ def create_csr(csr,key):
 
 def sign_csr(csr,ca_cn,attrib,algorithm='sha512',expires=1825):
     ca = CertificateAuthority.objects.get(cn=ca_cn)
+    # TODO: Check to see if the certificate already exists, and if so, is it the same user? Revoke the old one?
     cert = Certificate(ca=ca, csr=csr)
     expiry = datetime.datetime.now() + datetime.timedelta(expires)
     cert.x509 = Certificate.objects.init(
