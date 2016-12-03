@@ -56,3 +56,4 @@ docs/_build/
 .idea/
 web/db.sqlite3
 web/web/localsettings.py
+web/files/
