@@ -6,15 +6,19 @@ from django_ca.models import Certificate
 class AS(models.Model):
     number = models.IntegerField()
 
+    def __str__(self):
+        return self.number
+
 
 class Country(models.Model):
     region = models.IntegerField()
-    countrycode = models.IntegerField
+    countrycode = models.IntegerField()
     shortname = models.CharField(max_length=4)
     name = models.CharField(max_length=255)
 
     def __str__(self):
         return self.name
+
 
 class VPNProtocol(models.Model):
     name = models.CharField(max_length=50, default="")
@@ -28,7 +32,7 @@ class VPNServer(models.Model):
     protocol = models.ForeignKey(VPNProtocol)
     port = models.IntegerField(blank=False, null=False)
 
-    def __unicode__(self):
+    def __str__ (self):
         return "%s on port %s" %(self.protocol, self.port)
 
 
