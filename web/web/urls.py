@@ -25,4 +25,5 @@ urlpatterns = [
     url(r'^login/$', auth_views.login, name='login'),
     url(r'^logout/$', auth_views.logout, name='logout'),
     url(r'^ca/', include('ca.urls', namespace='ca')),
+    url(r'^routing/', include('routing.urls', namespace='routing')),
 ]

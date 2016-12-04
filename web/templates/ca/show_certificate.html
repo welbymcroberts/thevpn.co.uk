@@ -1,3 +1,6 @@
+{% extends 'base.html' %}
+
+{% block content %}
 <h1>Public Certificate for {{cert.cn}}</h1>
 <pre>
     {{cert.pub}}
@@ -20,3 +23,4 @@
         <td>{{cert.revoked}} {{cert.revoked_date}}</td>
     </tr>
 </table>
+{% endblock %}
