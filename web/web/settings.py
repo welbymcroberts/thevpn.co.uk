@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'social.apps.django_app.default',
     'django_ca',
     'ca',
+    'routing',
 ]
 
 MIDDLEWARE = [
