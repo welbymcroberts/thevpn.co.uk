@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Public Certificate for {{cert.cn}}</h1>
+<pre>
+    {{cert.pub}}
+</pre>
+<table>
+    <tr>
+        <td>Serial</td>
+        <td>{{cert.serial}}</td>
+    </tr>
+    <tr>
+        <td>Issued</td>
+        <td>{{cert.created}}</td>
+    </tr>
+    <tr>
+        <td>Expires</td>
+        <td>{{cert.expires}}</td>
+    </tr>
+    <tr>
+        <td>Revoked</td>
+        <td>{{cert.revoked}} {{cert.revoked_date}}</td>
+    </tr>
+</table>
+{% endblock %}
