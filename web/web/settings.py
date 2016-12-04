@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'social.apps.django_app.default',
     'django_ca',
+    'crispy_forms',
     'ca',
     'routing',
 ]
@@ -133,6 +134,6 @@ AUTHENTICATION_BACKENDS = (
 LOGIN_URL = 'login'
 LOGOUT_URL = 'logout'
 LOGIN_REDIRECT_URL = 'index'
-
+CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
 from web.localsettings import *
