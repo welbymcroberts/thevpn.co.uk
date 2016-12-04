@@ -30,13 +30,13 @@ def create_router(request):
             data = form.cleaned_data
             dns = data.get('dns')
             country = data.get('country')
-            #key,cert = create_cert(
-            #    dns,
-            #    country.shortname,
-            #    'TheVPN',
-            #    'TheVPN',
-            #    {dns,}
-            #)
+            key,cert = create_cert(
+                dns,
+                country.shortname,
+                'TheVPN',
+                'TheVPN',
+                {dns,}
+            )
             cert = Certificate.objects.get(pk=1)
             ASN = AS(number=get_next_ASN(country.countrycode,country.region))
             ASN.save()
