@@ -3,7 +3,7 @@ from django.shortcuts import render
 from .models import Router, VPNProtocol, VPNServer, AS, Country
 from django_ca.models import Certificate
 from ca.helpers import create_cert
-from .helpers import get_next_ASN
+from .helpers import get_next_ASN, make_random_string
 
 
 class RouterForm(forms.ModelForm):
@@ -30,9 +30,6 @@ def create_router(request):
             data = form.cleaned_data
             dns = data.get('dns')
             country = data.get('country')
-            country_object = Country.objects.get(pk=country)
-            countrycode = country_object.countrycode
-            countryitu = country_object.region
             #key,cert = create_cert(
             #    dns,
             #    country.shortname,
@@ -41,15 +38,15 @@ def create_router(request):
             #    {dns,}
             #)
             cert = Certificate.objects.get(pk=1)
-            ASN = AS(number=get_next_ASN(countrycode,countryitu))
+            ASN = AS(number=get_next_ASN(country.countrycode,country.region))
             ASN.save()
             router = Router(
                 dns=dns,
                 description=data.get('description'),
                 routertype=data.get('routertype'),
                 auto_connect=data.get('auto_connect'),
-                endpointkey='a',
-                radiuskey='a',
+                endpointkey=make_random_string(32),
+                radiuskey=make_random_string(32),
                 country=country,
                 ASN=ASN,
                 certificate=cert,
