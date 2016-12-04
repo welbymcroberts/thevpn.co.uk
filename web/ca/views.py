@@ -8,6 +8,7 @@ from django_ca.models import CertificateAuthority, Certificate
 from django_ca.crl import get_crl
 from .helpers import create_cert
 from OpenSSL import crypto
+from django.contrib.auth.decorators import login_required
 
 
 def ca_crl(request,serial,digest):
@@ -31,6 +32,7 @@ class CertificateForm(forms.Form):
 
 
 # TODO: Require admin rights to access this view?
+@login_required
 def create_certificate(request):
     form = CertificateForm()
     if request.method == 'POST':

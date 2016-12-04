@@ -2,6 +2,7 @@ from django import forms
 from django.shortcuts import render
 from .models import Router, VPNProtocol, VPNServer, AS, Country
 from django_ca.models import Certificate
+from django.contrib.auth.decorators import login_required
 from ca.helpers import create_cert
 from .helpers import get_next_ASN, make_random_string
 
@@ -22,6 +23,7 @@ class RouterForm(forms.ModelForm):
         ]
 
 
+@login_required
 def create_router(request):
     form = RouterForm()
     if request.method == 'POST':
