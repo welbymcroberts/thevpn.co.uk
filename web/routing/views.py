@@ -1,7 +1,9 @@
 from django import forms
 from django.shortcuts import render
-from .models import Router, VPNProtocol, VPNServer
+from .models import Router, VPNProtocol, VPNServer, AS
+from django_ca.models import Certificate
 from ca.helpers import create_cert
+
 
 class RouterForm(forms.ModelForm):
     supported_client_protocols = forms.ModelMultipleChoiceField(queryset=VPNProtocol.objects.all())
@@ -25,10 +27,35 @@ def create_router(request):
         form = RouterForm(request.POST)
         if form.is_valid():
             data = form.cleaned_data
-            #cn = data.get('cn')
-            #c = data.get('c')
-            #s = data.get('s')
-            #l = data.get('l')
-            #key,cert = create_cert(cn, c, s, l, {})
-            #return render(request, 'ca/oneshot_certificate.html', {'key': key, 'cert': cert})
+            dns = data.get('dns')
+            country = data.get('country')
+            #key,cert = create_cert(
+            #    dns,
+            #    country.shortname,
+            #    'TheVPN',
+            #    'TheVPN',
+            #    {dns,}
+            #)
+            cert = Certificate.objects.get(pk=1)
+            ASN = AS(number='1')
+            ASN.save()
+            router = Router(
+                dns=dns,
+                description=data.get('description'),
+                routertype=data.get('routertype'),
+                auto_connect=data.get('auto_connect'),
+                endpointkey='a',
+                radiuskey='a',
+                country=country,
+                ASN=ASN,
+                certificate=cert,
+                #TODO: should we check this is a valid and authed user?
+                owner=request.user,
+            )
+            router.save()
+            router.supported_client_vpn_protocols = data.get('supported_client_protocols')
+            router.supported_server_vpn_protocols = data.get('supported_server_protocols')
+            router.save()
+            # TODO - itterate over all Routers that are autoconnect and setup a connection between them
+            return render(request, 'ca/oneshot_certificate.html', {'key': key, 'cert': cert})
     return render(request, 'routing/create_router.html', {'form': form})
