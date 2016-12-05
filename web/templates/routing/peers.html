@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<table>
+    <thead>
+        <th>Name</th>
+        <th>DNS</th>
+        <th>Protocol</th>
+        <th>BGP IP</th>
+        <th>BGP AS</th>
+        <th>Local IP</th>
+        <th>Remote IP</th>
+    </thead>
+    {% for router in routers %}
+        <tr>
+            <td>{{ router.owner.username }}_{{ router.id }}</td>
+            <td>{{ router.dns }}</td>
+            <td>GREIPSEC</td>
+            <td>1.2.3.4</td>
+            <td>{{ router.ASN.number }}</td>
+            <td>4.3.2.1</td>
+            <td>1.2.3.4</td>
+        </tr>
+    {% endfor %}
+</table>
+{% endblock %}

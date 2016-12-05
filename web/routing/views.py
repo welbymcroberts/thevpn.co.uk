@@ -1,5 +1,5 @@
 from django import forms
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from .models import Router, VPNProtocol, VPNServer, AS, Country
 from django_ca.models import Certificate
 from django.contrib.auth.decorators import login_required
@@ -61,3 +61,14 @@ def create_router(request):
             # TODO - itterate over all Routers that are autoconnect and setup a connection between them
             return render(request, 'ca/oneshot_certificate.html', {'key': key, 'cert': cert})
     return render(request, 'routing/create_router.html', {'form': form})
+
+
+def peer_list(request,endpointkey):
+    # Check against a router
+    requesting_router = get_object_or_404(Router, endpointkey=endpointkey)
+    # TODO: only show peers we're connecting to.
+    routers = Router.objects.exclude(pk=requesting_router.id)
+    template = 'routing/peers.html'
+    if request.META['HTTP_USER_AGENT'] == 'Mikrotik/6.x Fetch':
+        template = 'routing/peers.mikrotik'
+    return render(request, template, {'routers': routers})
