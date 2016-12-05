@@ -125,9 +125,8 @@ STATIC_URL = '/static/'
 
 AUTHENTICATION_BACKENDS = (
     'social.backends.github.GithubOAuth2',
-    'social.backends.twitter.TwitterOAuth',
     'social.backends.facebook.FacebookOAuth2',
-
+    'social.backends.google.GoogleOAuth2',
     'django.contrib.auth.backends.ModelBackend',
 )
 
