@@ -4,7 +4,7 @@ from django_ca.models import Certificate
 
 
 class AS(models.Model):
-    number = models.IntegerField()
+    number = models.BigIntegerField()
 
     def __str__(self):
         return "%s" %self.number

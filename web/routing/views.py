@@ -39,7 +39,6 @@ def create_router(request):
                 'TheVPN',
                 {dns,}
             )
-            cert = Certificate.objects.get(pk=1)
             ASN = AS(number=get_next_ASN(country.countrycode,country.region))
             ASN.save()
             router = Router(
@@ -51,7 +50,7 @@ def create_router(request):
                 radiuskey=make_random_string(32),
                 country=country,
                 ASN=ASN,
-                certificate=cert,
+                certificate=Certificate.objects.get(pub=cert),
                 #TODO: should we check this is a valid and authed user?
                 owner=request.user,
             )
