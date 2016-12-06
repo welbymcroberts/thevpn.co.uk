@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django_ca.models import Certificate
-
+from ipam.models import IPNetwork
 
 class AS(models.Model):
     number = models.BigIntegerField()
@@ -57,6 +57,15 @@ class Router(models.Model):
     country = models.ForeignKey(Country)
     certificate = models.ForeignKey(Certificate)
     ASN = models.ForeignKey(AS)
-
+    peers = models.ManyToManyField('self', through=RouterConnection, symmetrical=False, related_name='related_peers+')
     def __str__(self):
         return "%s (%s)" %(self.dns, self.routertype)
+
+
+class RouterConnection(models.Model):
+    vpn_server = models.ForeignKey(VPNServerl)
+    from_router = models.ForeignKey('Router', related_name='from_routers')
+    to_router = models.ForeignKey('Router', related_name='to_routers')
+    iprange = models.ForeignKey(IPNetwork)
+    class Meta:
+        unique_together = ('from_router', 'to_router')
