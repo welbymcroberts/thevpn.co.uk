@@ -111,3 +111,6 @@ class Router(models.Model):
         lhs.save()
         rhs.save()
         return lhs,rhs
+
+class RoutedRange(models.Model):
+    iprange = models.ForeignKey('IPNetwork')
