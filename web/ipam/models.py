@@ -2,7 +2,7 @@ from django.db import models
 
 CIDR_SIZES=(
     (32,"/32 (1 Host)"),
-    (32,"/31 (2 Hosts)"),
+    (31,"/31 (2 Hosts)"),
     (30,"/30 (4 Hosts)"),
     (29,"/29 (8 Hosts)"),
     (28,"/28 (16 Hosts)"),
