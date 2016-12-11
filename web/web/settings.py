@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'crispy_forms',
     'ca',
     'routing',
+    'ipam',
 ]
 
 MIDDLEWARE = [
@@ -125,9 +126,8 @@ STATIC_URL = '/static/'
 
 AUTHENTICATION_BACKENDS = (
     'social.backends.github.GithubOAuth2',
-    'social.backends.twitter.TwitterOAuth',
     'social.backends.facebook.FacebookOAuth2',
-
+    'social.backends.google.GoogleOAuth2',
     'django.contrib.auth.backends.ModelBackend',
 )
 
@@ -135,5 +135,28 @@ LOGIN_URL = 'login'
 LOGOUT_URL = 'logout'
 LOGIN_REDIRECT_URL = 'index'
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
+
+SOCIAL_AUTH_GOOGLE_OAUTH2_AUTH_EXTRA_ARGUMENTS = {
+    'access_type': 'offline',
+    'approval_prompt': 'auto'
+}
+SOCIAL_AUTH_FACEBOOK_SCOPE = ['email']
+SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {
+  'locale': 'en_GB',
+  'fields': 'id, name, email'
+}
+SOCIAL_AUTH_PIPELINE = (
+    'social.pipeline.social_auth.social_details',
+    'social.pipeline.social_auth.social_uid',
+    'social.pipeline.social_auth.auth_allowed',
+    'social.pipeline.social_auth.social_user',
+    'core.views.redirect_if_no_refresh_token',
+    'social.pipeline.user.get_username',
+    'social.pipeline.social_auth.associate_by_email',
+    'social.pipeline.user.create_user',
+    'social.pipeline.social_auth.associate_user',
+    'social.pipeline.social_auth.load_extra_data',
+    'social.pipeline.user.user_details',
+)
 
 from web.localsettings import *
