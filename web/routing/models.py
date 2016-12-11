@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django_ca.models import Certificate
 from ipam.models import IPNetwork
+import netaddr
 
 class AS(models.Model):
     number = models.BigIntegerField()
@@ -42,6 +43,13 @@ class RouterType(models.Model):
     def __str__(self):
         return self.name
 
+class RouterConnection(models.Model):
+    vpn_server = models.ForeignKey(VPNServer)
+    from_router = models.ForeignKey('Router', related_name='from_router')
+    to_router = models.ForeignKey('Router', related_name='to_router')
+    iprange = models.ForeignKey(IPNetwork)
+    class Meta:
+        unique_together = ('from_router', 'to_router')
 
 class Router(models.Model):
     dns = models.CharField(max_length=255,default="no.hostname.provided")
@@ -61,11 +69,45 @@ class Router(models.Model):
     def __str__(self):
         return "%s (%s)" %(self.dns, self.routertype)
 
+    def generate_peer(self,initiator,peer):
+        ret = {}
+        if initiator == 1:
+           ret['myip'] = netaddr.IPAddress(peer.iprange.address) + 2
+           ret['remip'] = netaddr.IPAddress(peer.iprange.address) + 1
+           ret['owner'] = peer.to_router.owner.username
+           ret['id'] = peer.to_router.id
+           ret['dns'] = peer.to_router.dns
+           ret['asn'] = peer.to_router.ASN.number
+        else:
+            ret['myip'] = netaddr.IPAddress(peer.iprange.address) + 1
+            ret['remip'] = netaddr.IPAddress(peer.iprange.address) + 2
+            ret['owner'] = peer.from_router.owner.username
+            ret['id'] = peer.from_router.id
+            ret['dns'] = peer.from_router.dns
+            ret['asn'] = peer.from_router.ASN.number
+        ret['bgpip'] = ret['remip']
+        ret['protocol'] = peer.vpn_server.protocol.shortname
+        return ret
 
-class RouterConnection(models.Model):
-    vpn_server = models.ForeignKey(VPNServer)
-    from_router = models.ForeignKey('Router', related_name='from_routers')
-    to_router = models.ForeignKey('Router', related_name='to_routers')
-    iprange = models.ForeignKey(IPNetwork)
-    class Meta:
-        unique_together = ('from_router', 'to_router')
+    def get_peers(self):
+        peer_list = {}
+        connect_to = RouterConnection.objects.filter(from_router=self).select_related()
+        for peer in connect_to:
+            peer_gen = self.generate_peer(1,peer)
+            peer_list[peer_gen['dns']] = peer_gen
+        return peer_list
+    def add_peering(self,lhs,rhs,vpn_server, iprange):
+        peering = RouterConnection.objects.get_or_create(from_router=lhs, to_router=rhs, iprange=iprange,
+                                                         vpn_server=vpn_server)
+        return peering
+
+    def create_peering(self,lhs,rhs,vpn_server,iprange=None):
+        if iprange==None:
+            iprange = IPNetwork.objects.filter(size=30,in_use=False).order_by('id').first()
+            iprange.in_use=True
+            iprange.save()
+        lhs.add_peering(lhs, rhs, vpn_server, iprange)
+        rhs.add_peering(rhs, lhs, vpn_server, iprange)
+        lhs.save()
+        rhs.save()
+        return lhs,rhs
