@@ -90,11 +90,11 @@ class Router(models.Model):
         return ret
 
     def get_peers(self):
-        peer_list = {}
+        peer_list = []
         connect_to = RouterConnection.objects.filter(from_router=self).select_related()
         for peer in connect_to:
             peer_gen = self.generate_peer(1,peer)
-            peer_list[peer_gen['dns']] = peer_gen
+            peer_list.append(peer_gen)
         return peer_list
     def add_peering(self,lhs,rhs,vpn_server, iprange):
         peering = RouterConnection.objects.get_or_create(from_router=lhs, to_router=rhs, iprange=iprange,

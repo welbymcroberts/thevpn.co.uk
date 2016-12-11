@@ -1,1 +1,1 @@
-{% for router in routers %}{{ router.owner.username }}_{{ router.id }}|{{ router.dns }}|GREIPSEC|1.2.3.4|{{ router.ASN.number }}|4.3.2.1|1.2.3.4,{% endfor %}
+{% for router in routers %}{{ router.owner }}_{{ router.id }}|{{ router.dns }}|{{ router.protocol }}|{{router.bgpip}}|{{ router.asn }}|{{ router.myip }}|{{ router.remip }},{% endfor %}

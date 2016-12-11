@@ -67,7 +67,7 @@ def peer_list(request,endpointkey):
     # Check against a router
     requesting_router = get_object_or_404(Router, endpointkey=endpointkey)
     # TODO: only show peers we're connecting to.
-    routers = Router.objects.exclude(pk=requesting_router.id)
+    routers = requesting_router.get_peers()
     template = 'routing/peers.html'
     if request.META['HTTP_USER_AGENT'] == 'Mikrotik/6.x Fetch':
         template = 'routing/peers.mikrotik'
