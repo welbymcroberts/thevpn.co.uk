@@ -166,7 +166,7 @@ if ([/ip ipsec proposal find name=$PREFIX] = "") do={
 # Step 1: Get a list of peers from central                                    #
 ###############################################################################
 # Fetch data
-/tool fetch url="$BASEURL/peers/$VPNAPIKEY/" dst-path="$PREFIX/peers"
+/tool fetch url="$BASEURL/routing/peers/$VPNAPIKEY/" dst-path="$PREFIX/peers"
 # Load in array
 :local peers [:toarray [/file get [/file find name="$PREFIX/peers"] contents]]
 :foreach peer in=$peers do={
