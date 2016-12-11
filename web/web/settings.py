@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'crispy_forms',
     'ca',
     'routing',
+    'ipam',
 ]
 
 MIDDLEWARE = [

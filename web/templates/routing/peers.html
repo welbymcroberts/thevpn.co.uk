@@ -13,13 +13,13 @@
     </thead>
     {% for router in routers %}
         <tr>
-            <td>{{ router.owner.username }}_{{ router.id }}</td>
+            <td>{{ router.owner }}_{{ router.id }}</td>
             <td>{{ router.dns }}</td>
-            <td>GREIPSEC</td>
-            <td>1.2.3.4</td>
-            <td>{{ router.ASN.number }}</td>
-            <td>4.3.2.1</td>
-            <td>1.2.3.4</td>
+            <td>{{ router.protocol }}</td>
+            <td>{{ router.bgpip }}</td>
+            <td>{{ router.asn }}</td>
+            <td>{{ router.myip }}</td>
+            <td>{{ router.remip }}</td>
         </tr>
     {% endfor %}
 </table>

@@ -7,7 +7,7 @@ urlpatterns = [
         name='create_router'
     ),
     url(r'^peers/(?P<endpointkey>\w+)/?$',
-        create_router,
-        name='create_router'
+        peer_list,
+        name='peer_list'
     ),
 ]
