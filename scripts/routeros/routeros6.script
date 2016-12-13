@@ -54,7 +54,7 @@
 ###############################################################################
 # Other variables
 ###############################################################################
-:local BASEURL "http://thevpn.co.uk/"
+:local BASEURL "https://thevpn.co.uk/"
 
 
 ###############################################################################
@@ -309,7 +309,7 @@ if ([/ip ipsec proposal find name=$PREFIX] = "") do={
 ###############################################################################
 :foreach peer in=$allpeers do={
     :if ( [ /routing bgp peer find remote-address=($peer->"bgpip")] = "") do={
-        :log warn ("BGP Peer not found for " . ($peer->"name") . " Adding")
+        :log warn ("BGP Peer not found for " . ($peer->"name") . " Adding IP Address ".($peer->"bgpip") . " for ASN " . ($peer->"bgpas"))
         /routing bgp peer add address-families=ip in-filter=($PREFIX."-IN") out-filter=($PREFIX."-OUT") remote-address=($peer->"bgpip") remote-as=($peer->"bgpas") keepalive-time=10s name=($PREFIX."-".($peer->"name")) instance=$PREFIX
     } else={
         :log debug ("BGP Peer found for ".($peer->"name")." doing nothing")
