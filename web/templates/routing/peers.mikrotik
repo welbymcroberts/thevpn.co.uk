@@ -1,1 +1,1 @@
-{% for router in routers %}{{ router.owner }}_{{ router.id }}|{{ router.dns }}|{{ router.protocol }}|{{router.bgpip}}|{{ router.asn }}|{{ router.myip }}|{{ router.remip }},{% endfor %}
+{% for router in routers %}{{ router.owner }}_{{ router.id }}|{{ router.dns }}|{{ router.protocol }}|{{router.port}}|{{router.bgpip}}|{{ router.asn }}|{{ router.myip }}|{{ router.remip }},{% endfor %}

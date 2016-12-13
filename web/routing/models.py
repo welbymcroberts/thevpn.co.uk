@@ -71,22 +71,26 @@ class Router(models.Model):
 
     def generate_peer(self,initiator,peer):
         ret = {}
+        my_offset = 1
+        their_offset = 2
+        if peer.to_router.id < peer.from_router.id:
+            my_offset = 2
+            their_offset = 1
         if initiator == 1:
-           ret['myip'] = netaddr.IPAddress(peer.iprange.address) + 2
-           ret['remip'] = netaddr.IPAddress(peer.iprange.address) + 1
            ret['owner'] = peer.to_router.owner.username
            ret['id'] = peer.to_router.id
            ret['dns'] = peer.to_router.dns
            ret['asn'] = peer.to_router.ASN.number
         else:
-            ret['myip'] = netaddr.IPAddress(peer.iprange.address) + 1
-            ret['remip'] = netaddr.IPAddress(peer.iprange.address) + 2
             ret['owner'] = peer.from_router.owner.username
             ret['id'] = peer.from_router.id
             ret['dns'] = peer.from_router.dns
             ret['asn'] = peer.from_router.ASN.number
-        ret['bgpip'] = ret['remip']
+        ret['myip'] = "%s/%s" %((netaddr.IPAddress(peer.iprange.address) + my_offset),peer.iprange.size)
+        ret['remip'] = "%s/%s" %((netaddr.IPAddress(peer.iprange.address) + their_offset),peer.iprange.size)
+        ret['bgpip'] = netaddr.IPAddress(peer.iprange.address)
         ret['protocol'] = peer.vpn_server.protocol.shortname
+        ret['port'] = peer.vpn_server.port
         return ret
 
     def get_peers(self):
