@@ -107,11 +107,14 @@ if ([:len [/routing bgp instance find where name="TheVPN"]] >0) do={
 if ([:len [/routing filter find comment=($PREFIX."-IN:0")]] <1) do={
     /routing filter add chain=($PREFIX."-IN") prefix-length=12-32 action=log prefix=172.16.0.0/12 comment=($PREFIX."-IN:0")
 }
-# Log rule
+# Accept rule
 if ([:len [/routing filter find comment=($PREFIX."-IN:1")]] <1) do={
     /routing filter add chain=($PREFIX."-IN") prefix-length=12-32 action=accept prefix=172.16.0.0/12 comment=($PREFIX."-IN:1")
 }
-
+# Drop everything else rule
+if ([:len [/routing filter find comment=($PREFIX."-IN:2")]] <1) do={
+    /routing filter add chain=($PREFIX."-IN") action=drop comment=($PREFIX."-IN:2")
+}
 # End BGP config
 
 # Radius config
