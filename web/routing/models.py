@@ -88,7 +88,7 @@ class Router(models.Model):
             ret['asn'] = peer.from_router.ASN.number
         ret['myip'] = "%s/%s" %((netaddr.IPAddress(peer.iprange.address) + my_offset),peer.iprange.size)
         ret['remip'] = "%s/%s" %((netaddr.IPAddress(peer.iprange.address) + their_offset),peer.iprange.size)
-        ret['bgpip'] = ret['remip']
+        ret['bgpip'] = "%s" %((netaddr.IPAddress(peer.iprange.address) + their_offset))
         ret['protocol'] = peer.vpn_server.protocol.shortname
         ret['port'] = peer.vpn_server.port
         return ret
