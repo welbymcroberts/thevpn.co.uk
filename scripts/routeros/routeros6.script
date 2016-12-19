@@ -113,7 +113,7 @@ if ([:len [/routing filter find comment=($PREFIX."-IN:1")]] <1) do={
 }
 # Drop everything else rule
 if ([:len [/routing filter find comment=($PREFIX."-IN:2")]] <1) do={
-    /routing filter add chain=($PREFIX."-IN") action=drop comment=($PREFIX."-IN:2")
+    /routing filter add chain=($PREFIX."-IN") action=discard comment=($PREFIX."-IN:2")
 }
 # End BGP config
 
