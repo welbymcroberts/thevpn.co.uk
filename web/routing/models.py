@@ -69,14 +69,14 @@ class Router(models.Model):
     def __str__(self):
         return "%s (%s)" %(self.dns, self.routertype)
 
-    def generate_peer(self,initiator,peer):
+    def generate_peer(self,peer):
         ret = {}
         my_offset = 1
         their_offset = 2
-        if peer.to_router.id < peer.from_router.id:
+        if (self.id == peer.from_router.id and peer.to_router.id < peer.from_router.id) or (self.id == peer.to_router.id and peer.to_router.id > peer.from_router.id):
             my_offset = 2
             their_offset = 1
-        if initiator == 1:
+        if self.id == peer.from_router.id:
            ret['owner'] = peer.to_router.owner.username
            ret['id'] = peer.to_router.id
            ret['dns'] = peer.to_router.dns
@@ -95,9 +95,9 @@ class Router(models.Model):
 
     def get_peers(self):
         peer_list = []
-        connect_to = RouterConnection.objects.filter(from_router=self).select_related()
+        connect_to = RouterConnection.objects.filter(models.Q(from_router=self) | models.Q(to_router=self)).select_related()
         for peer in connect_to:
-            peer_gen = self.generate_peer(1,peer)
+            peer_gen = self.generate_peer(peer)
             peer_list.append(peer_gen)
         return peer_list
     def add_peering(self,lhs,rhs,vpn_server, iprange):
