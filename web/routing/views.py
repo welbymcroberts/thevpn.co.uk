@@ -1,4 +1,5 @@
 from django import forms
+from django.conf import settings
 from django.shortcuts import render, get_object_or_404
 from .models import Router, VPNProtocol, VPNServer, AS, Country
 from django_ca.models import Certificate
@@ -35,8 +36,8 @@ def create_router(request):
             key,cert = create_cert(
                 dns,
                 country.shortname,
-                'TheVPN',
-                'TheVPN',
+                settings.THEVPN_NAME,
+                settings.THEVPN_NAME,
                 {dns,}
             )
             ASN = AS(number=get_next_ASN(country.countrycode,country.region))

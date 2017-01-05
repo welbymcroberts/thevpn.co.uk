@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.conf.urls import url, include
 from OpenSSL import crypto
 from django_ca.views import CertificateRevocationListView
@@ -12,53 +13,53 @@ urlpatterns = [
              content_type='text/plain',
          ),
          name='sha256-crl'),
-    url(r'crl/root.ca.thevpn.co.uk/crl.crt',
+    url(r'crl/root.ca.' + settings.THEVPN_FQDN + '/crl.crt',
         ca_crl,
         {
             'digest': 'sha256',
-            'serial': 'FF:0E:B8:04:62:C6:41:B2:80:32:FF:FB:75:68:A3:3F',
+            'serial': 'D4:6D:66:35:03:11:47:A3:B4:23:F2:A4:21:39:45:F8',
         },
         name="TheVPN-Root-CA-CRL",
     ),
-    url(r'crl/routers.ca.thevpn.co.uk/crl.crt',
+    url(r'crl/routers.ca.' + settings.THEVPN_FQDN + '/crl.crt',
         ca_crl,
         {
             'digest': 'sha256',
-            'serial': '33:FF:08:18:A8:6C:42:45:95:B1:E7:36:97:79:64:E4',
+            'serial': '6E:A9:4B:83:8D:FE:40:53:BA:0A:7E:AB:CD:80:B0:86',
         },
         name="TheVPN-Routers-CA-CRL",
     ),
-    url(r'^ocsp/root.ca.thevpn.co.uk$',
+    url(r'^ocsp/root.ca.' + settings.THEVPN_FQDN + '$',
         OCSPView.as_view(
-            ca='FF:0E:B8:04:62:C6:41:B2:80:32:FF:FB:75:68:A3:3F',
+            ca='D4:6D:66:35:03:11:47:A3:B4:23:F2:A4:21:39:45:F8',
             expires=600,
-            responder_cert='/etc/ssl/oscp-root.ca.thevpn.co.uk.pem',
-            responder_key='/etc/ssl/oscp-root.ca.thevpn.co.uk.key',
+            responder_cert='/etc/ssl/oscp-root.ca.' + settings.THEVPN_FQDN + '.pem',
+            responder_key='/etc/ssl/oscp-root.ca.' + settings.THEVPN_FQDN + '.key',
         )
     ),
-    url(r'^ocsp/routers.ca.thevpn.co.uk$',
+    url(r'^ocsp/routers.ca.' + settings.THEVPN_FQDN + '$',
         OCSPView.as_view(
-            ca='33:FF:08:18:A8:6C:42:45:95:B1:E7:36:97:79:64:E4',
+            ca='6E:A9:4B:83:8D:FE:40:53:BA:0A:7E:AB:CD:80:B0:86',
             expires=600,
-            responder_cert='/etc/ssl/oscp-routers.ca.thevpn.co.uk.pem',
-            responder_key='/etc/ssl/oscp-routers.ca.thevpn.co.uk.key',
+            responder_cert='/etc/ssl/oscp-routers.ca.' + settings.THEVPN_FQDN + '.pem',
+            responder_key='/etc/ssl/oscp-routers.ca.' + settings.THEVPN_FQDN + '.key',
         )
     ),
     url(r'^certificate/create$',
         create_certificate,
         name="certificate_create"
     ),
-    url(r'^certificate/show/root.ca.thevpn.co.uk/?$',
+    url(r'^certificate/show/root.ca.' + settings.THEVPN_FQDN + '/?$',
         show_ca,
         {
-            "cn": "root.ca.thevpn.co.uk",
+            "cn": "root.ca." + settings.THEVPN_FQDN + "",
         },
         name="certificate_show_root"
     ),
-    url(r'^certificate/show/routers.ca.thevpn.co.uk/?$',
+    url(r'^certificate/show/routers.ca.' + settings.THEVPN_FQDN + '/?$',
         show_ca,
         {
-            "cn": "routers.ca.thevpn.co.uk",
+            "cn": "routers.ca." + settings.THEVPN_FQDN + "",
         },
         name="certificate_show_root"
     ),

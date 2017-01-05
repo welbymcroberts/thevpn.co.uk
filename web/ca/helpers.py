@@ -1,5 +1,6 @@
 from OpenSSL import crypto
 import datetime
+from django.conf import settings
 from django_ca.models import Certificate, CertificateAuthority
 import datetime
 
@@ -25,7 +26,7 @@ def create_csr(csr,key):
     subj.C = csr['C']
     subj.ST = csr['S']
     subj.L = csr['L']
-    subj.O = "TheVPN"
+    subj.O = settings.THEVPN_NAME
     req.sign(pkey, "sha256")
     return crypto.dump_certificate_request(crypto.FILETYPE_PEM, req)
 
@@ -42,7 +43,8 @@ def sign_csr(csr,ca_cn,attrib,algorithm='sha512',expires=1825):
     return cert.pub
 
 
-def create_cert(cn, c, s, l, san, ca_cn='routers.ca.thevpn.co.uk'):
+def create_cert(cn, c, s, l, san, ca_cn=None):
+    if ca_cn is None: ca_cn = 'routers.ca.' + settings.THEVPN_FQDN;
     key = create_key()
     attrib = {'CN': cn, 'C': c, 'S': s, 'L': l, 'san': san}
     csr = create_csr(csr=attrib, key=key)

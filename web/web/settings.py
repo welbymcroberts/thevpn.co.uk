@@ -159,4 +159,16 @@ SOCIAL_AUTH_PIPELINE = (
     'social.pipeline.user.user_details',
 )
 
+# django-ca Settings
+# https://django-ca.readthedocs.io/en/latest/settings.html
+
+CA_DIR = 'certs.key'
+
+# TheVpn settings, set these in your localsettings
+
+# Organisation name
+#THEVPN_NAME = 'TheVpn'
+# The domain you use
+#THEVPN_FQDN = 'thevpn.co.uk'
+
 from web.localsettings import *
