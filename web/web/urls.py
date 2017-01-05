@@ -21,6 +21,7 @@ from core import views as core_views
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^$', core_views.index, name='index'),
+    url(r'^whatsmyip/$', core_views.whatsmyip, name='whatsmyip'),
     url('', include('social.apps.django_app.urls', namespace='social')),
     url(r'^login/$', auth_views.login, name='login'),
     url(r'^logout/$', auth_views.logout, name='logout'),

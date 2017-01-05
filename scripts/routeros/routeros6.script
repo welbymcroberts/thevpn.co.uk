@@ -156,7 +156,7 @@ if ([/ip ipsec proposal find name=$PREFIX] = "") do={
 # Bind IP
 :if ($BINDIP = "0") do={
     $c "Get IP from server"
-    /tool fetch url="http://icanhazip.com/" dst-path="$PREFIX/ip"
+    /tool fetch url="$BASEURL/whatsmyip/" dst-path="$PREFIX/ip"
     :local IP [/file get [/file find name="$PREFIX/ip"] contents]
     :set BINDIP [:pick $IP 0 ([:len $IP]-1)]
 }
