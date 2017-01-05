@@ -1,0 +1,8 @@
+
+# TheVpn local settings
+
+# Organisation name
+THEVPN_NAME = 'TheVpn'
+# The domain you use
+THEVPN_FQDN = 'thevpn.co.uk'
+
