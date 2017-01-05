@@ -57,3 +57,5 @@ docs/_build/
 web/db.sqlite3
 web/web/localsettings.py
 web/files/
+web/certs.key/
+web/secret.txt
