@@ -164,11 +164,13 @@ SOCIAL_AUTH_PIPELINE = (
 
 CA_DIR = 'certs.key'
 
-# TheVpn settings, set these in your localsettings
-
-# Organisation name
-#THEVPN_NAME = 'TheVpn'
-# The domain you use
-#THEVPN_FQDN = 'thevpn.co.uk'
+try:
+    SECRET_KEY
+except NameError:
+    SECRET_FILE = os.path.join(BASE_DIR, 'secret.txt')
+    try:
+        SECRET_KEY = open(SECRET_FILE).read().strip()
+    except IOError:
+        SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 
 from web.localsettings import *
