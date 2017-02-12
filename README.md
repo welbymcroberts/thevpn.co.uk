@@ -15,15 +15,15 @@ Install
 Clone & enter repository
 ```
 git clone https://github.com/welbymcroberts/thevpn.co.uk
-cd thevpn.co.uk/web/
+cd thevpn.co.uk/thevpn/
 ```
 Check Python requirements
 ```
 pip install --upgrade -r requirements.txt
 ```
-Set your localsettings and create secret for SECRET_KEY
+Set your local settings and create secret for SECRET_KEY
 ```
-cp web/localsettings.py.default web/localsettings.py
+cp thevpn/local_settings.py.default thevpn/local_settings.py
 cat /dev/urandom | tr -dc "a-zA-Z0-9\!@#$%^&*()_+?><~\`;'" | head -c 50 > secret.txt
 chmod 400 secret.txt
 ```
@@ -36,7 +36,7 @@ Create admin
 ```
 ./manage.py createsuperuser
 ```
-Create Root certificate (replace THEVPN_FQDN with the value from localsettings.py)
+Create Root certificate (replace THEVPN_FQDN with the value from local_settings.py)
 (see https://django-ca.readthedocs.io/en/latest/ca_management.html)
 ```
 ./manage.py init_ca --key-type RSA --key-size 4096 --expires 600 --pathlen=1 root.ca.THEVPN_FQDN /C=<Country>/O=<Organisation>
@@ -47,14 +47,14 @@ Lookup serial of Root certificate
 ```
 Create Certificate Authority
 ```
-./manage.py init_ca --key-type RSA --key-size 4096 --parent=<ROOT_SERIAL> routers.ca.thevpn.nl /C=<Country>/O=<Organisation>
+./manage.py init_ca --key-type RSA --key-size 4096 --parent=<ROOT_SERIAL> routers.ca.THEVPN_FQDN /C=<Country>/O=<Organisation>
 ```
-Start the server
+Start the server, you can adjust the address and port in local_settings.py by setting `DEFAULT_ADDR` and `DEFAULT_PORT`
 ```
 ./manage.py runserver
 ```
 
-Now you can login to http://127.0.0.1/admin and add Countries, RouterTypes, VPN Protocols, VPN Servers
+Now you can login to http://127.0.0.1/admin and add RouterTypes, VPN Protocols, VPN Servers
 
 Commercial Use
 ==============
