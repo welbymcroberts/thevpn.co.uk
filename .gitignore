@@ -54,8 +54,8 @@ docs/_build/
 
 # pycharm
 .idea/
-web/db.sqlite3
-web/web/localsettings.py
-web/files/
-web/certs.key/
-web/secret.txt
+thevpn/db.sqlite3
+thevpn/thevpn/local_settings.py
+thevpn/files/
+thevpn/certs.key/
+thevpn/secret.txt

@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% load crispy_forms_tags %}
+
+{% block content %}
+<form method="POST" class="post-form">
+    <h2>Create a new certificate</h2>
+    
+    {% crispy form %}
+</form>
+{% endblock %}

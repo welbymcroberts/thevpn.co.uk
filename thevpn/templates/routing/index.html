@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% load bootstrap3 %}
+
+{% block content %}
+    {% bootstrap_messages %}
+    
+    <h3>Hello {{ user.username }}!</h3>
+    
+    {% if routers|length %}
+        <p>The following routers are registered under your name:</p>
+        {% include "routing/router_table.html" %}
+    {% else %}
+        <p>You have not yet registered any routers</p>
+    {% endif %}
+    
+    <a href="/routing/router/create" class="btn btn-primary">Add a router</a>
+    
+    {% if request.user.is_staff and other_routers %}
+        <br/>
+        <br/>
+        <h3>Other routers</h3>
+    
+        <p>The following routers are registered with other people:</p>
+        {% include "routing/router_table.html" with routers=other_routers others=True %}
+    {% endif %}
+{% endblock %}

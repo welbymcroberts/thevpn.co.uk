@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% load bootstrap3 %}
+
+{% block content %}
+{% bootstrap_messages %}
+
+<h1>{% block title %}Public Certificate for {{cert.cn}}{% endblock %}</h1>
+
+{% if cert %}
+    <pre class="{% if cert.revoked %}text-danger{% endif %}">{{cert.pub}}</pre>
+    <p>Download as <a href="/ca/certificate/show/{{ cert.serial }}?format=pem">.pem</a></p>
+    
+    <table class="table">
+        <tr>
+            <th>Serial</th>
+            <td>{{cert.serial}}</td>
+        </tr>
+        <tr>
+            <th>Issued</th>
+            <td>{{cert.created|date:"j M Y H:i e" }}</td>
+        </tr>
+        <tr>
+            <th>Expires</th>
+            <td>{{cert.expires|date:"j M Y H:i e" }}</td>
+        </tr>
+        <tr>
+            <th>Revoked</th>
+            <td class="{% if cert.revoked == True %}text-danger{% endif %}">{{cert.revoked_date|date:"j M Y H:i e" }}</td>
+        </tr>
+        {% block extra_certificate_attributes %}{% endblock %}
+        {% if duplicateCerts %}
+        <tr>
+            <th>Duplicate certificates (for CN)</th>
+            <td>
+                {% for cert in duplicateCerts %}
+                    {% if forloop.counter0 %}<br/>{% endif %}
+                    {% if cert.revoked %}
+                    {{ cert.serial }} (revoked)
+                    {% else %}
+                    <a href="../show/{{ cert.serial }}">{{ cert.serial }}</a>
+                    {% endif %}
+                {% endfor %}
+            </td>
+        </tr>
+        {% endif %}
+    </table>
+{% else %}
+    <pre>No certificate has been created yet for this router</pre>
+{% endif %}
+<a href="javascript:history.go(-1)" class="btn btn-info">Back</a>
+{% if revokeForm %}
+    {% load crispy_forms_tags %}
+    <div id="revokeDialog" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form method="POST" action="../revoke/{{ cert.serial }}" class="post-form">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">Revoke Certificate</h4>
+                </div>
+                <div class="modal-body">
+                    <p>Please select the reason why you want to revoke this certificate</p>
+                    {% crispy revokeForm %}
+                    <div class="bg-info text-center" style="padding: 10px">Please note, revocation of certificates is irreversible</div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <input type="submit" class="btn btn-warning" value="Revoke"/>
+                </div>
+                </form>
+            </div>
+        </div>
+     </div>
+    <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#revokeDialog">Revoke</button>
+{% endif %}
+{% block exta_certificate_buttons %}{% endblock %}
+{% endblock %}

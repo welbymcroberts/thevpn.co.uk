@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1> This is only shown once! </h1>
+<h5 class="text-danger">Store the private key now in a secure location. After reloading this page there is no way to retrieve it</h5>
+<table class="table">
+	<tr>
+		<th>Private Key</th>
+		<td><pre>{{ key }}</pre></td>
+	</tr>
+	<tr>
+		<th>Cert</th>
+		<td><pre>{{ cert }}</pre></td>
+	</tr>
+</table>
+{% endblock %}

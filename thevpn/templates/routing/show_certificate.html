@@ -1,0 +1,22 @@
+{% extends 'ca/show_certificate.html' %}
+
+{% block title %}
+    {% if router and router.dns %}Certificate for router {{ router.dns }}
+    {% else %}Public Certificate for {{cert.cn}} <small><br/>could be a zombie certificate</small>
+    {% endif %}
+{% endblock %}
+
+{% block extra_certificate_attributes %}
+    {% if cert.ca %}
+    <tr>
+        <th>Used by a router</th>
+        <td>{% if cert.isLinked %}Yes{% elif router %}No, <a href="../activate/{{ cert.serial }}">activate this certificate</a>{% else %}<span class="text-warning">No router exists with corresponding DNS name</span>{% endif %}</td>
+    </tr>
+    {% endif %}
+{% endblock %}
+
+{% block exta_certificate_buttons %}
+    {% if canRequest %}
+        <a href="/routing/certificate/request/{{ router.endpointkey }}" class="btn btn-warning">Request new certificate</a>
+    {% endif %}
+{% endblock %}

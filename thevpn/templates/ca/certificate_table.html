@@ -1,0 +1,32 @@
+{% load bootstrap3 %}
+
+<table class="table" width="100%">
+    <thead>
+    <tr>
+        <th>CN</th>
+        {% if hasLink %}<th>Owner</th>{% endif %}
+        <th>{% if revoked %}Reason{% elif unique %}Count{% else %}Status{% endif %}</th>
+        <th>{% if revoked %}Date{% else %}Expires{% endif %}</th>
+        <th>Serial</th>
+        <th>&nbsp;</th>
+    </tr>
+    </thead>
+<tbody>
+{% for cert in certs %}
+<tr>
+    <td>{{ cert.cn }}</td>
+    {% if hasLink %}<td>{% for router in cert.routers %}{% if forloop.counter0 %}<br/>{% endif %}{{ router.owner }}{% endfor %}</td>{% endif %}
+    <td>{% if revoked and cert.revoked %}{{ cert.revoked_reason }}{% elif unique %}{{ cert.count }}{% elif cert.revoked %}Revoked{% else %}Valid{% endif %}</td>
+    <td>{% if revoked %}{{ cert.revoked_date|date:"j M Y H:i e" }}{% else %}{{ cert.expires|date:"j M Y H:i e" }}{% endif %}</td>
+    <td>{{ cert.serial }}</td>
+    <td class="text-right">
+        <a href="/ca/certificate/show/{{ cert.serial }}" title="Show Certificate" class="btn btn-info btn-xs">{% bootstrap_icon "eye-open" %}</a>
+    </td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="6">No certificates found for this list</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>

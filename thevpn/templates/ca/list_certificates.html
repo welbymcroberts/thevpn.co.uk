@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% load bootstrap3 %}
+
+{% block content %}
+    {% bootstrap_messages %}
+    
+    {% if linkedCerts %}
+    <h3>These are all the certificates that are linked to a router</h3>
+    {% include "ca/certificate_table.html" with certs=linkedCerts hasLink=True %}
+    {% endif %}
+    
+    {% if activeCerts %}
+    <h3>These are all the valid certificates which are not linked to a router</h3>
+    {% include "ca/certificate_table.html" with certs=activeCerts %}
+    {% endif %}
+    
+    {% if revokedCerts %}
+    <h3>These are all the revoked certificates not linked to a router</h3>
+    {% include "ca/certificate_table.html" with certs=revokedCerts revoked=True %}
+    {% endif %}
+    
+    {% if uniqueCerts %}
+    <h3>These are all certificates which have duplicate CN's</h3>
+    {% include "ca/certificate_table.html" with certs=uniqueCerts unique=True %}
+    {% endif %}
+{% endblock %}

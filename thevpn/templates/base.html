@@ -1,0 +1,85 @@
+{% load i18n static %}<!DOCTYPE html>
+{% get_current_language as LANGUAGE_CODE %}{% get_current_language_bidi as LANGUAGE_BIDI %}
+<html lang="{{ LANGUAGE_CODE|default:"en-us" }}" {% if LANGUAGE_BIDI %}dir="rtl"{% endif %}>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}{% endblock %}</title>
+{# Load the tag library #}
+{% load bootstrap_themes %}
+
+{% load static %}
+
+<script src="{% static "js/jquery.min.js" %}"></script>
+
+{% bootstrap_styles theme='cosmo' type='css' %}
+{% bootstrap_script use_min=True %}
+{% block extrahead %}{% endblock %}
+</head>
+{% load i18n %}
+<body>
+    <nav class="navbar navbar-inverse">
+        <div class="container">
+          <div class="container-fluid">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-2">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="/">{{ THEVPN_NAME }}</a>
+            </div>
+            
+            {% if user.is_active %}
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-2">
+              <ul class="nav navbar-nav">
+                <li class="{% if request.path == '/' %}active{% endif %}"><a href="/">{% trans 'Home' %}{% if request.path == '/' %} <span class="sr-only">(current)</span>{% endif %}</a></li>
+                <li class="dropdown">
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Certificates <span class="caret"></span></a>
+                  <ul class="dropdown-menu" role="menu">
+                    <li><a href="/ca/certificate/show/root.ca.{{ THEVPN_FQDN }}">Root certificate</a></li>
+                    <li><a href="/ca/certificate/show/routers.ca.{{ THEVPN_FQDN }}">Routers certificate</a></li>
+                    {% if user.is_active and user.is_staff %}
+                    <li class="divider"></li>
+                    <li><a href="/ca/certificate/create/">Create</a></li>
+                    <li class="divider"></li>
+                    <li><a href="/ca/certificate/list/all">Show All</a></li>
+                    <li><a href="/ca/certificate/list/active">Show Active</a></li>
+                    <li><a href="/ca/certificate/list/valid">Show Valid</a></li>
+                    <li><a href="/ca/certificate/list/revoked">Show Revoked</a></li>
+                    <li><a href="/ca/certificate/list/duplicate">Show Duplicate CN</a></li>
+                    {% endif %}
+                  </ul>
+                </li>
+                <li class="dropdown">
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Graphs <span class="caret"></span></a>
+                  <ul class="dropdown-menu" role="menu">
+                    <li><a href="/routing/graph/peers/">Peers</a></li>
+                    <li><a href="/routing/graph/status/">Status</a></li>
+                  </ul>
+                </li>
+              </ul>
+              <ul class="nav navbar-nav navbar-right">
+              {% if user.is_staff %}
+                <li><a href="{% url 'admin:index' %}">Admin</a></li>
+              {% endif %}
+                <li><a href="/logout">Sign out</a></li>
+              </ul>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <div id="content" class="panel panel-default">
+            <div class="panel-body">
+                {% block content %}
+                {% endblock %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

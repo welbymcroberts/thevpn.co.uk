@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<form method="POST" class="post-form">
+    <h2>Create a new router</h2>
+    <p>Please note that new router requests need to be approved by the admin</p>
+    {% crispy form %}
+</form>
+{% endblock %}

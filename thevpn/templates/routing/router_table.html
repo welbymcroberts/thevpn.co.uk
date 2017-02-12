@@ -1,0 +1,49 @@
+{% load bootstrap3 %}
+
+<table class="table" width="100%">
+    <thead>
+    <tr>
+        <th rowspan="2">DNS</th>
+        {% if others %}<th rowspan="2">Owner</th>{% endif %}
+        <th rowspan="2">Type</th>
+        <th class="visible-lg" rowspan="2">Key</th>
+        <th colspan="2" style="text-align: center;">Supported protocols</th>
+        <th rowspan="2">Country</th>
+        <th rowspan="2">ASN</th>
+        <th rowspan="2"></th>
+    </tr>
+    <tr>
+        <th class="text-center">Client</th>
+        <th class="text-center">Server</th>
+    </tr>
+    </thead>
+<tbody>
+{% for router in routers %}
+<tr>
+    <td>{{ router.dns }}</td>
+        {% if others %}<td>{{ router.owner }}</td>{% endif %}
+    <td><a href="/routing/script/{{ router.endpointkey }}">{{ router.routertype }}</a></td>
+    <td class="visible-lg">{{ router.endpointkey }}</td>
+    <td>{% for proto in router.supported_client_vpn_protocols.all %}
+            {% if forloop.counter0 %}<br/>{% endif %}
+            {{ proto }}
+        {% endfor %}
+    </td>
+    <td>{% for proto in router.supported_server_vpn_protocols.all %}
+            {% if forloop.counter0 %}<br/>{% endif %}
+            {{ proto }}
+        {% endfor %}
+    </td>
+    <td>{{ router.country }}</td>
+    <td>{{ router.ASN }}</td>
+    <td class="text-right">
+        <a href="/routing/peers/{{ router.endpointkey }}" title="peers" class="btn btn-info btn-xs">{% bootstrap_icon "transfer" %}</a>
+        <a href="/routing/certificate/show/{{ router.endpointkey }}" title="certificates"
+            class="btn btn-{% if not router.certificate or router.certificate.revoked %}warning{% else %}info{% endif %} btn-xs">{% bootstrap_icon "certificate" %}</a>
+        <a href="/routing/router/delete/{{ router.endpointkey }}" class="btn btn-danger btn-xs" title="remove"
+            onclick="return confirm('Are you sure you want to remove router {{ router.dns }}?');">{% bootstrap_icon "remove" %}</a>
+    </td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
